@@ -209,6 +209,28 @@ inline void swap(array<T, mem_manager>& a,array<T, mem_manager>& b) {
 		return array_elements[pos];
 	};
 
+	template<typename T, typename mem_manager>
+	void array<T, mem_manager>::swap(array<T, mem_manager>& item) {
+		unsigned long array_size_temp  = item.array_size;
+		unsigned long max_array_size_temp = item.max_array_size;
+		T* array_elements_temp = item.array_elements;
+
+		item.array_size = array_size;
+		item.max_array_size = max_array_size;
+		item.array_elements = array_elements;
+
+		array_size = array_size_temp;
+		max_array_size = max_array_size_temp;
+		array_elements = array_elements_temp;
+
+		exchange(_at_start, item._at_start);
+		exchange(pos, item.pos);
+		exchange(last_pos, item.last_pos);
+		pool.swap(item.pool);
+	};
+
+
+
 
 
 }
