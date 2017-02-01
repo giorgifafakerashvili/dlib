@@ -135,7 +135,80 @@ class array : public enumerable<T> {
     iterator                end()                           { return array_elements+array_size; }
     const_iterator          end() const                     { return array_elements+array_size; }
 
+	typename mem_manager::template rebind<T>::other pool;
+
+	// data memeers
+	unsigned long array_size;
+	unsigned long max_array_size;
+	T* array_elements;
+
+	mutable T* pos;
+	T* last_pos;
+	mutable bool _at_start;
+
+	// resricted functions
+	array(array<T>&); // copy constructor
+	array<T>& operator=(array<T>&); // copy assignement operator
+
 };
+
+template<typename T, typename mem_manager>
+inline void swap(array<T, mem_manager>& a,array<T, mem_manager>& b) {
+	a.swap(b);
+};
+
+	template<typename T, typename mem_manager>
+	void serialize(consta array<T, mem_manager>& item,
+	               std::ostream& out) {
+		try {
+			serialize(item.max_size(), out);
+			serialize(item.size(), out);
+
+			for(unsigned long i = 0; i < item.size(); ++i) {
+				serialize(item[i], out);
+			}
+		} catch(serialize_error e) {
+			throw serialization_error(e.info + "\n while serializeing object or type array");
+		}
+	};
+
+
+	template<typename T, typename mem_menager>
+	void deserialize(array<T, mem_manager>& item,
+					 std::istream& in) {
+		try {
+			unsigned long max_size, size;
+			deserialize(max_size, in);
+			deserialize(size, in);
+			item.set_max_size(max_size);
+			item.set_size(size);
+
+			for(unsigned long i = 0; i < size; ++i) {
+				deserialize(item[i], in);
+			}
+		} catch(serialization_error e) {
+			item.clear();
+			throw serialization_error(e.info + "\n while deserialiazing object or type array");
+		}
+	};
+
+	/**
+	 *  Member functions
+	 */
+	template<typename T, typename mem_manager>
+	array<T, mem_manager>::~array() {
+		if(array_elements) {
+			pool.dealolocate_array(array_elements);
+		}
+	};
+
+	template<typename T, typename mem_manager>
+	const T& array<T, mem_manager>::operator[](unsigned long pos) const {
+		DLIB_ASSERT(pos < this->size(),
+			"\t const T& array::operator[]");
+		return array_elements[pos];
+	};
+
 
 
 }
